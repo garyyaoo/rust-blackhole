@@ -1,0 +1,11 @@
+[package]
+name = "ui"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+eframe = "0.33.3"
+gl = "0.14.0"
+glfw = "0.58"
+rand = "0.10.0"
+rayon = "1"
