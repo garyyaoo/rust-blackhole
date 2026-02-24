@@ -1,9 +1,11 @@
 //! Warped spacetime grid geometry.
 
-use super::constants::{GRID_SIZE, SPACING};
-use super::scene::{BlackHole, GridObject};
+use crate::three_d::constants::WARP_OFFSET;
 
-pub fn generate_grid(bh: &BlackHole, objects: &[GridObject]) -> (Vec<[f32; 3]>, Vec<u32>) {
+use super::constants::{GRID_SIZE, SPACING};
+use super::scene::{BlackHole, SceneObject};
+
+pub fn generate_grid(bh: &BlackHole, objects: &[SceneObject]) -> (Vec<[f32; 3]>, Vec<u32>) {
     let mut vertices = Vec::new();
     let mut indices = Vec::new();
 
@@ -15,7 +17,7 @@ pub fn generate_grid(bh: &BlackHole, objects: &[GridObject]) -> (Vec<[f32; 3]>, 
             for obj in objects {
                 world_y += obj.warp_contribution(world_x, world_z);
             }
-            vertices.push([world_x, world_y, world_z]);
+            vertices.push([world_x, world_y + WARP_OFFSET, world_z]);
         }
     }
 

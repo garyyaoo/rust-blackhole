@@ -8,9 +8,9 @@ Full demos in assets.
 
 ## Features
 
-- **Geodesic ray tracer accretion disk** — null geodesics integrated per-pixel on the GPU via Euler steps with proximity-based adaptive step size (smaller near the event horizon)
 - **Spacetime curvature grid** — the background grid is warped by the Schwarzschild embedding formula, visualising spacetime curvature, coloured amber at the inner edge to yellow at the outer
-- **Orbital camera** — drag to orbit, scroll to zoom
+- **Geodesic ray tracer accretion disk** — null geodesics integrated per-pixel on the GPU via Euler steps with proximity-based adaptive step size (smaller near the event horizon)
+- **Orbital camera** — drag to orbit, scroll to zoom, implementing perspective matrix
 
 ## Physics
 

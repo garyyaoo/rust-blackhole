@@ -42,6 +42,11 @@ pub const QUAD_FRAG_GEODESIC: &str = r#"
     uniform float aspect;
     uniform float r_s;
 
+    const int   MAX_OBJECTS = 8;
+    uniform int  numObjects;
+    uniform vec4 objPosRadius[MAX_OBJECTS]; // xyz = position, w = visual radius
+    uniform vec4 objColor[MAX_OBJECTS];     // rgb = colour
+
     const float D_LAMBDA   = 5e9;
     const int   MAX_STEPS  = 3000;
     const float ESCAPE_R   = 1e12;
@@ -125,6 +130,19 @@ pub const QUAD_FRAG_GEODESIC: &str = r#"
                 }
             }
             prev_y = cart_y;
+
+            // Scene object sphere intersection (headlamp: camera = light source)
+            vec3 P = vec3(cart_x, cart_y, cart_z);
+            for (int j = 0; j < numObjects; j++) {
+                if (distance(P, objPosRadius[j].xyz) <= objPosRadius[j].w) {
+                    vec3 N = normalize(P - objPosRadius[j].xyz);
+                    vec3 V = normalize(camPos - P);
+                    float intensity = 0.1 + 0.9 * max(dot(N, V), 0.0);
+                    FragColor = vec4(objColor[j].rgb * intensity, 1.0);
+                    return;
+                }
+            }
+
             if (r > ESCAPE_R) break;
         }
 

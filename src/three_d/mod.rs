@@ -14,7 +14,7 @@ use camera::Camera;
 use gl_utils::create_program;
 use grid::generate_grid;
 use math::{camera_basis, look_at, mat4_mul, perspective};
-use scene::grid_objects;
+use scene::scene_objects;
 use shaders::{GRID_FRAG, GRID_VERT, QUAD_FRAG_GEODESIC, QUAD_VERT};
 
 pub use camera::Camera as ThreeDCamera;
@@ -53,7 +53,7 @@ pub fn run() {
         let quad_program = create_program(QUAD_VERT, QUAD_FRAG_GEODESIC);
 
         // Grid geometry
-        let (vertices, indices) = generate_grid(&bh, &grid_objects());
+        let (vertices, indices) = generate_grid(&bh, &scene_objects());
         let index_count = indices.len() as i32;
 
         // Allocate GPU buffers
@@ -134,6 +134,30 @@ pub fn run() {
                 gl::GetUniformLocation(quad_program, b"r_s\0".as_ptr() as *const _),
             )
         };
+
+    // -- Upload static scene objects to the geodesic shader (once, before the loop) --
+    let objects = scene_objects();
+    {
+        let loc_num = unsafe { gl::GetUniformLocation(quad_program, b"numObjects\0".as_ptr() as *const _) };
+        let loc_pr  = unsafe { gl::GetUniformLocation(quad_program, b"objPosRadius[0]\0".as_ptr() as *const _) };
+        let loc_col = unsafe { gl::GetUniformLocation(quad_program, b"objColor[0]\0".as_ptr() as *const _) };
+
+        let mut pr_data: Vec<f32> = Vec::new();
+        let mut col_data: Vec<f32> = Vec::new();
+        for o in &objects {
+            pr_data.extend_from_slice(&[o.position[0], o.position[1], o.position[2], o.radius]);
+            col_data.extend_from_slice(&[o.color[0], o.color[1], o.color[2], 0.0]);
+        }
+
+        unsafe {
+            gl::UseProgram(quad_program);
+            gl::Uniform1i(loc_num, objects.len() as i32);
+            if !objects.is_empty() {
+                gl::Uniform4fv(loc_pr,  objects.len() as i32, pr_data.as_ptr());
+                gl::Uniform4fv(loc_col, objects.len() as i32, col_data.as_ptr());
+            }
+        }
+    }
 
     // Camera perspectives, move to GPU
     let mut camera = Camera::new();
