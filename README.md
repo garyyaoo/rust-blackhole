@@ -2,7 +2,7 @@
 
 Realtime black hole simulation, highlight accretion disk and spacetime curvature.
 
-![Black Hole Simulation](assets/output.gif)
+![Black Hole Simulation](assets/output-stars.gif)
 
 Full demos in assets.
 
