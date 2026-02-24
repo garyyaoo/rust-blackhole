@@ -4,6 +4,8 @@ Realtime black hole simulation implemented in Rust.
 
 ![Black Hole Simulation](assets/lensing-gif.gif)
 
+More in [assets](assets/)
+
 ## Features
 
 - **Spacetime curvature grid** — the background grid is warped by the Schwarzschild embedding formula, visualising the spacetime curvature from the blackhole.
