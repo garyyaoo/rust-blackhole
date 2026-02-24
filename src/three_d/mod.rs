@@ -21,7 +21,7 @@ pub use camera::Camera as ThreeDCamera;
 pub use scene::{BlackHole, GridObject};
 
 pub fn run() {
-    // -- Program & window setup --
+    // Program setup
     let mut glfw = glfw::init_no_callbacks().unwrap();
     glfw.window_hint(glfw::WindowHint::ContextVersion(3, 3));
     glfw.window_hint(glfw::WindowHint::OpenGlProfile(
@@ -30,6 +30,7 @@ pub fn run() {
     #[cfg(target_os = "macos")]
     glfw.window_hint(glfw::WindowHint::OpenGlForwardCompat(true));
 
+    // Window setup
     let (mut window, events) = glfw
         .create_window(800, 600, "Black Hole Grid", glfw::WindowMode::Windowed)
         .expect("Failed to create GLFW window");
@@ -55,12 +56,16 @@ pub fn run() {
         let (vertices, indices) = generate_grid(&bh, &grid_objects());
         let index_count = indices.len() as i32;
 
+        // Allocate GPU buffers
         let (mut vao, mut vbo, mut ebo) = (0u32, 0u32, 0u32);
         gl::GenVertexArrays(1, &mut vao);
         gl::GenBuffers(1, &mut vbo);
         gl::GenBuffers(1, &mut ebo);
 
+        // Start VAO
         gl::BindVertexArray(vao);
+
+        // Move indices and vertices data to GPU
         gl::BindBuffer(gl::ARRAY_BUFFER, vbo);
         gl::BufferData(
             gl::ARRAY_BUFFER,
@@ -84,6 +89,8 @@ pub fn run() {
             -1.0, 1.0, 0.0, 1.0, -1.0, -1.0, 0.0, 0.0, 1.0, -1.0, 1.0, 0.0, -1.0, 1.0, 0.0, 1.0,
             1.0, -1.0, 1.0, 0.0, 1.0, 1.0, 1.0, 1.0,
         ];
+
+        // Allocate GPU buffers and move to GPU
         let mut quad_vao = 0u32;
         let mut quad_vbo = 0u32;
         gl::GenVertexArrays(1, &mut quad_vao);
@@ -128,28 +135,34 @@ pub fn run() {
             )
         };
 
+    // Camera perspectives, move to GPU
+    let mut camera = Camera::new();
     let tan_hfov = (60.0_f32.to_radians() * 0.5).tan();
     let aspect = 800.0 / 600.0_f32;
-
-    let mut camera = Camera::new();
 
     while !window.should_close() {
         // Events
         glfw.poll_events();
         for (_, event) in glfw::flush_messages(&events) {
             match event {
+                // Close event
                 WindowEvent::Key(Key::Escape, _, Action::Press, _) => {
                     window.set_should_close(true)
                 }
+
+                // Drag event - Pressed
                 WindowEvent::MouseButton(MouseButton::Button1, Action::Press, _) => {
                     camera.dragging = true;
                     let (x, y) = window.get_cursor_pos();
                     camera.last_x = x as f32;
                     camera.last_y = y as f32;
                 }
+                // Drag event - Released
                 WindowEvent::MouseButton(MouseButton::Button1, Action::Release, _) => {
                     camera.dragging = false;
                 }
+
+                // Drag - update camera object
                 WindowEvent::CursorPos(x, y) => {
                     if camera.dragging {
                         let dx = x as f32 - camera.last_x;
@@ -163,6 +176,7 @@ pub fn run() {
                     camera.last_x = x as f32;
                     camera.last_y = y as f32;
                 }
+                // Scroll - update camera radius
                 WindowEvent::Scroll(_, y) => {
                     camera.radius -= y as f32 * 1e9;
                     camera.radius = camera.radius.clamp(1e10, 1e13);

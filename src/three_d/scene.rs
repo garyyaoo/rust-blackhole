@@ -20,7 +20,7 @@ impl BlackHole {
         }
     }
 
-    /// Warped y for a grid point at (world_x, world_z) from this black hole.
+    // Grid warping at (x, y) due to this blackhole
     pub fn warp_y(&self, x: f32, z: f32) -> f32 {
         let dx = x - self.x;
         let dy = GRID_Y_SHIFT;

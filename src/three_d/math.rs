@@ -1,5 +1,5 @@
-//! Column-major 4×4 and vec3 helpers (GLM-style).
 
+// Perspective matrix
 pub fn perspective(fov_y_rad: f32, aspect: f32, near: f32, far: f32) -> [f32; 16] {
     let f = 1.0 / (fov_y_rad * 0.5).tan();
     let nf = 1.0 / (near - far);
