@@ -68,6 +68,60 @@ pub const QUAD_FRAG_GEODESIC: &str = r#"
         d2phi   = -2.0*dr*dphi/r   - 2.0*(cos_t/sin_t)*dtheta*dphi;
     }
 
+    uniform int useRK4;  // 1 = RK4, 0 = Euler
+    
+    // Euler step - take step using derivative at start of interval
+    void euler_step(inout float r, inout float theta, inout float phi,
+                    inout float dr, inout float dtheta, inout float dphi,
+                    float E, float h) {
+        float d2r, d2theta, d2phi;
+        geodesic_rhs(r, theta, dr, dtheta, dphi, E, d2r, d2theta, d2phi);
+        r      += h * dr;
+        theta  += h * dtheta;
+        phi    += h * dphi;
+        dr     += h * d2r;
+        dtheta += h * d2theta;
+        dphi   += h * d2phi;
+    }
+
+    // RK4 step - take step using weighted average of derivatives at start, midpoint, and end
+    // 4x more computation than Euler
+    void rk4_step(inout float r, inout float theta, inout float phi,
+                  inout float dr, inout float dtheta, inout float dphi,
+                  float E, float h) {
+        float d2r, d2theta, d2phi;
+
+        // k1 — derivatives at current state
+        geodesic_rhs(r, theta, dr, dtheta, dphi, E, d2r, d2theta, d2phi);
+        float k1r=dr,   k1t=dtheta, k1p=dphi;
+        float k1vr=d2r, k1vt=d2theta, k1vp=d2phi;
+
+        // k2 — midpoint using k1
+        float dr2=dr+0.5*h*k1vr, dt2=dtheta+0.5*h*k1vt, dp2=dphi+0.5*h*k1vp;
+        geodesic_rhs(r+0.5*h*k1r, theta+0.5*h*k1t, dr2, dt2, dp2, E, d2r, d2theta, d2phi);
+        float k2r=dr2, k2t=dt2, k2p=dp2;
+        float k2vr=d2r, k2vt=d2theta, k2vp=d2phi;
+
+        // k3 — midpoint using k2
+        float dr3=dr+0.5*h*k2vr, dt3=dtheta+0.5*h*k2vt, dp3=dphi+0.5*h*k2vp;
+        geodesic_rhs(r+0.5*h*k2r, theta+0.5*h*k2t, dr3, dt3, dp3, E, d2r, d2theta, d2phi);
+        float k3r=dr3, k3t=dt3, k3p=dp3;
+        float k3vr=d2r, k3vt=d2theta, k3vp=d2phi;
+
+        // k4 — full step using k3
+        float dr4=dr+h*k3vr, dt4=dtheta+h*k3vt, dp4=dphi+h*k3vp;
+        geodesic_rhs(r+h*k3r, theta+h*k3t, dr4, dt4, dp4, E, d2r, d2theta, d2phi);
+        float k4r=dr4, k4t=dt4, k4p=dp4;
+        float k4vr=d2r, k4vt=d2theta, k4vp=d2phi;
+
+        r      += h/6.0*(k1r  + 2.0*k2r  + 2.0*k3r  + k4r);
+        theta  += h/6.0*(k1t  + 2.0*k2t  + 2.0*k3t  + k4t);
+        phi    += h/6.0*(k1p  + 2.0*k2p  + 2.0*k3p  + k4p);
+        dr     += h/6.0*(k1vr + 2.0*k2vr + 2.0*k3vr + k4vr);
+        dtheta += h/6.0*(k1vt + 2.0*k2vt + 2.0*k3vt + k4vt);
+        dphi   += h/6.0*(k1vp + 2.0*k2vp + 2.0*k3vp + k4vp);
+    }
+
     void main() {
         float u = (vTex.x * 2.0 - 1.0) * aspect * tanHalfFov;
         float v = (vTex.y * 2.0 - 1.0) * tanHalfFov;
@@ -104,16 +158,13 @@ pub const QUAD_FRAG_GEODESIC: &str = r#"
             }
 
             float proximity = clamp((r - r_s) / (5.0 * r_s), 0.0, 1.0);
-            float h = D_LAMBDA * (0.05 + 0.95 * proximity);
+            float h = D_LAMBDA * (0.02 + 0.98 * proximity);
 
-            float d2r, d2theta, d2phi;
-            geodesic_rhs(r, theta, dr, dtheta, dphi, E, d2r, d2theta, d2phi);
-            r      += h * dr;
-            theta  += h * dtheta;
-            phi    += h * dphi;
-            dr     += h * d2r;
-            dtheta += h * d2theta;
-            dphi   += h * d2phi;
+            if (useRK4 != 0) {
+                rk4_step(r, theta, phi, dr, dtheta, dphi, E, h);
+            } else {
+                euler_step(r, theta, phi, dr, dtheta, dphi, E, h);
+            }
             if (abs(sin(theta)) < POLE_EPS) dphi = 0.0;
 
             float sin_th = sin(theta);

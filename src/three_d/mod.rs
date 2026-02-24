@@ -122,6 +122,9 @@ pub fn run() {
     // Uniform locations
     let loc_vp =
         unsafe { gl::GetUniformLocation(program, b"viewProj\0".as_ptr() as *const _) };
+    let loc_use_rk4 =
+        unsafe { gl::GetUniformLocation(quad_program, b"useRK4\0".as_ptr() as *const _) };
+
     let (loc_cam_pos, loc_cam_right, loc_cam_up, loc_cam_fwd, loc_thfov, loc_aspect, loc_rs) =
         unsafe {
             (
@@ -160,6 +163,7 @@ pub fn run() {
     }
 
     // Camera perspectives, move to GPU
+    let mut use_rk4 = false;
     let mut camera = Camera::new();
     let tan_hfov = (60.0_f32.to_radians() * 0.5).tan();
     let aspect = 800.0 / 600.0_f32;
@@ -172,6 +176,11 @@ pub fn run() {
                 // Close event
                 WindowEvent::Key(Key::Escape, _, Action::Press, _) => {
                     window.set_should_close(true)
+                }
+                // Handle toggle between Euler and RK4
+                WindowEvent::Key(Key::I, _, Action::Press, _) => {
+                    use_rk4 = !use_rk4;
+                    println!("Integrator: {}", if use_rk4 { "RK4" } else { "Euler" });
                 }
 
                 // Drag event - Pressed
@@ -229,6 +238,7 @@ pub fn run() {
             gl::Uniform1f(loc_thfov, tan_hfov);
             gl::Uniform1f(loc_aspect, aspect);
             gl::Uniform1f(loc_rs, bh_r_s);
+            gl::Uniform1i(loc_use_rk4, use_rk4 as i32);
             gl::BindVertexArray(quad_vao);
             gl::DrawArrays(gl::TRIANGLES, 0, 6);
             gl::BindVertexArray(0);
