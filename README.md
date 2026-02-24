@@ -11,7 +11,8 @@ Realtime black hole simulation implemented in Rust.
 - **Orbital camera** — drag to orbit perspective, scroll to zoom, implemented using the perspective of an orbital camera.
 - **Stars emulation** - simulate the effect on light from two neighboring stars with blue light and yellow light.
 
-Inspired by youtube video [Simulating Blackholes in C++](https://www.youtube.com/watch?v=8-B6ryuBkCM)
+Inspired by youtube videos [
+Let's reproduce the calculations from Interstellar](https://www.youtube.com/watch?v=ABFGKdKKKyg) and [Simulating Blackholes in C++](https://www.youtube.com/watch?v=8-B6ryuBkCM)
 
 ## Running locally
 

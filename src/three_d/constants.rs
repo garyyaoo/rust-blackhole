@@ -8,7 +8,7 @@ pub const C: f64 = 299_792_458.0;
 pub const BH_MASS: f64 = 8.54e36;
 
 // Grid layout
-pub const GRID_SIZE: i32 = 50;
+pub const GRID_SIZE: i32 = 60;
 pub const SPACING: f32 = 1e10;
 
 // Vertical offsets for Flamm paraboloid warp
