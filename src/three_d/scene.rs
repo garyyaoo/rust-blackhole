@@ -89,7 +89,7 @@ impl SceneObject {
 
 pub fn scene_objects() -> Vec<SceneObject> {
     vec![
-        SceneObject::new([-3e11, 0.0,  2e11], 4e10, 2e30, [1.0, 1.0, 0.0]), // yellow star
+        SceneObject::new([-3e11, 1e11,  2e11], 4e10, 2e30, [1.0, 1.0, 0.0]), // yellow star
         SceneObject::new([-3e11, 0.0, -1e11], 4e10, 2e30, [0.0, 0.5, 1.0]), // blue star
     ]
 }

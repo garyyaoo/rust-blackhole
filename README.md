@@ -2,14 +2,15 @@
 
 Realtime black hole simulation implemented in Rust.
 
-![Black Hole Simulation](assets/output-stars.gif)
+![Black Hole Simulation](assets/lensing-gif.gif)
 
 ## Features
 
 - **Spacetime curvature grid** — the background grid is warped by the Schwarzschild embedding formula, visualising the spacetime curvature from the blackhole.
-- **Geodesic ray tracer accretion disk** — light geodesics integrated per-pixel on the GPU via Euler. This creates the black hole's accretion disk from a light source stemming from the camera.
+- **Geodesic ray tracer accretion disk** — light geodesics integrated per-pixel on the GPU via Euler/RK4. This creates the black hole's accretion disk from a light source stemming from the camera.
+- **Near stars emulation** - simulate the effect on light from two neighboring stars with blue light and yellow light.
+- **Background starfield emulation** - simulates the lensing of background stars around the black hole.
 - **Orbital camera** — drag to orbit perspective, scroll to zoom, implemented using the perspective of an orbital camera.
-- **Stars emulation** - simulate the effect on light from two neighboring stars with blue light and yellow light.
 
 Inspired by youtube videos [
 Let's reproduce the calculations from Interstellar](https://www.youtube.com/watch?v=ABFGKdKKKyg) and [Simulating Blackholes in C++](https://www.youtube.com/watch?v=8-B6ryuBkCM)
@@ -40,6 +41,6 @@ All distances are in SI metres. The black hole uses [Sagittarius A*'s](https://e
 | `grid.rs` | Warped grid vertex/index generation |
 | `camera.rs` | Orbital camera (azimuth, elevation, radius) |
 | `math.rs` | Matrix math for camera perspective |
-| `shaders.rs` | GLSL source strings (grid + geodesic quad) |
+| `shaders.rs` | GLSL source strings for stars and ray-traces |
 | `gl_utils.rs` | Shader compilation and program linking |
 | `mod.rs` | Entry point: window, GPU setup, render loop |

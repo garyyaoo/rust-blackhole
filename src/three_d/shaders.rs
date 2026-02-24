@@ -122,6 +122,23 @@ pub const QUAD_FRAG_GEODESIC: &str = r#"
         dphi   += h/6.0*(k1vp + 2.0*k2vp + 2.0*k3vp + k4vp);
     }
 
+    // Procedural starfield sampled from a lensed escape direction.
+    // Returns an RGB colour; black when no star lands in that cell.
+    vec3 starfield(vec3 dir) {
+        vec3 p  = dir * 300.0; 
+        vec3 fl = floor(p);
+        float h1 = fract(sin(dot(fl, vec3(127.1, 311.7,  74.7))) * 43758.5453);
+        float h2 = fract(sin(dot(fl, vec3(269.5, 183.3, 246.1))) * 43758.5453);
+        float h3 = fract(sin(dot(fl, vec3(113.5, 271.9, 124.6))) * 43758.5453);
+        if (h1 > 0.0001) return vec3(0.0);   // ~0.01 % of cells host a star
+        float brightness = 0.3 + 0.7 * h2;
+        vec3 tint;
+        if      (h3 < 0.33) tint = vec3(0.8, 0.9, 1.0);   // blue-white
+        else if (h3 < 0.66) tint = vec3(1.0, 1.0, 1.0);   // white
+        else                tint = vec3(1.0, 0.85, 0.6);   // warm orange
+        return tint * brightness;
+    }
+
     void main() {
         float u = (vTex.x * 2.0 - 1.0) * aspect * tanHalfFov;
         float v = (vTex.y * 2.0 - 1.0) * tanHalfFov;
@@ -150,6 +167,7 @@ pub const QUAD_FRAG_GEODESIC: &str = r#"
         float disk_r1 = r_s * DISK_INNER;
         float disk_r2 = r_s * DISK_OUTER;
         float prev_y  = camPos.y;
+        bool  escaped = false;
 
         for (int i = 0; i < MAX_STEPS; i++) {
             if (r <= r_s) {
@@ -194,9 +212,23 @@ pub const QUAD_FRAG_GEODESIC: &str = r#"
                 }
             }
 
-            if (r > ESCAPE_R) break;
+            if (r > ESCAPE_R) { escaped = true; break; }
         }
 
-        FragColor = vec4(0.0, 0.0, 0.0, 0.0);
+        if (escaped) {
+            // Reconstruct Cartesian direction from final spherical velocity
+            float sin_th_e = sin(theta);
+            float cos_th_e = cos(theta);
+            float sin_ph_e = sin(phi);
+            float cos_ph_e = cos(phi);
+            vec3 escape_dir = normalize(vec3(
+                dr*sin_th_e*cos_ph_e + r*(dtheta*cos_th_e*cos_ph_e - dphi*sin_th_e*sin_ph_e),
+                dr*cos_th_e          - r*dtheta*sin_th_e,
+                dr*sin_th_e*sin_ph_e + r*(dtheta*cos_th_e*sin_ph_e + dphi*sin_th_e*cos_ph_e)
+            ));
+            FragColor = vec4(starfield(escape_dir), 1.0);
+        } else {
+            FragColor = vec4(0.0, 0.0, 0.0, 1.0);
+        }
     }
 "#;
